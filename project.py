@@ -17,14 +17,59 @@ null_rows = df.isnull().any(axis=1)
 
 if null_rows.any():
     print("There are rows with null fields.")
+
 else:
     print("There are no rows with null fields.")
 
 # %%
+# Check for null values in each column
+null_columns = df.isnull().sum()
 
+if not null_columns.empty:
+    print("Num of null value rows in the Columns are:")
+    print(null_columns)
+else:
+    print("There are no columns with null values.")
+
+#%%
 #Removing null
+df=df.dropna()
+df
+#%%
+# Convert 'Date' column to datetime format
+df['Date'] = pd.to_datetime(df['Date'])
 
-df.dropna()
+#%%
+from scipy.stats import zscore
+
+numerical_cols = ['Battery Electric Vehicles (BEVs)', 'Plug-In Hybrid Electric Vehicles (PHEVs)', 'Electric Vehicle (EV) Total', 'Non-Electric Vehicle Total', 'Total Vehicles', 'Percent Electric Vehicles']
+
+z_scores = zscore(df[numerical_cols])
+
+threshold = 3
+outliers = (abs(z_scores) > threshold).any(axis=1)
+
+if outliers.any():
+    print("Rows with outliers:")
+    
+else:
+    print("There are no rows with outliers.")
+
+df[outliers]
+
+#%%
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(15, 8))
+for i, col in enumerate(numerical_cols, 1):
+    plt.subplot(2, 3, i)
+    sns.boxplot(x=df[col], color='skyblue')
+    plt.title(f'Boxplot of {col}')
+
+plt.tight_layout()
+plt.show()
+
 
 # %%
 import matplotlib.pyplot as plt
@@ -186,3 +231,90 @@ chi2_stat, p_val, result
 
 
 # %%
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+# Load the world map shapefile (built-in geopandas dataset)
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+
+# Merge the map with the electric vehicle data by country
+merged_data = world.merge(df.groupby('State')['Electric Vehicle (EV) Total'].sum().reset_index(), 
+                           how='left', left_on='iso_a3', right_on='State')
+
+# Plotting the map
+fig, ax = plt.subplots(1, 1, figsize=(15, 10))
+merged_data.plot(column='Electric Vehicle (EV) Total', cmap='viridis', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+
+# Add labels and title
+ax.set_title('Electric Vehicle Adoption by Country', fontdict={'fontsize': '15', 'fontweight' : '3'})
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+
+# Show the plot
+plt.show()
+
+
+
+# %%
+first_year = df['Date'].min().year
+print(f"Starting Year: {first_year}")
+
+last_year = df['Date'].max().year
+print(f"Ending Year: {last_year}")
+
+# %%
+import pandas as pd
+import matplotlib.pyplot as plt
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+# Assuming df is your DataFrame with the electric vehicle data
+# Convert the 'Date' column to datetime format
+
+# Extract relevant columns
+data = df[['Date', 'State', 'Electric Vehicle (EV) Total']]
+
+# Aggregate data by state and date
+state_date_agg = data.groupby(['State', 'Date']).sum().reset_index()
+
+# Visualize temporal trends for a specific state (e.g., 'WA' for Washington)
+state_data = state_date_agg[state_date_agg['State'] == 'WA']
+
+# Plot the temporal trends
+plt.figure(figsize=(12, 6))
+plt.plot(state_data['Date'], state_data['Electric Vehicle (EV) Total'], marker='o', linestyle='-', color='b')
+plt.title('Temporal Trends of Electric Vehicle Adoption in Washington')
+plt.xlabel('Date')
+plt.ylabel('Total Electric Vehicles')
+plt.grid(True)
+plt.show()
+
+# Time Series Forecasting with Exponential Smoothing
+state_data = state_data.set_index('Date')
+state_data.index.freq = 'D'  # Assuming daily frequency
+
+# Instantiate Exponential Smoothing model
+model = ExponentialSmoothing(state_data['Electric Vehicle (EV) Total'], trend='add', seasonal='add', seasonal_periods=365)
+
+# Fit the model
+fit_model = model.fit()
+
+# Create a dataframe with future dates for forecasting
+future_dates = pd.date_range(start=state_data.index[-1] + pd.Timedelta(days=1), periods=365, freq='D')
+future = pd.DataFrame(index=future_dates)
+
+# Generate forecasts
+forecast = fit_model.forecast(steps=365)
+
+# Plot the forecast
+plt.figure(figsize=(12, 6))
+plt.plot(state_data.index, state_data['Electric Vehicle (EV) Total'], label='Historical Data')
+plt.plot(future.index, forecast, label='Forecast', linestyle='--', color='r')
+plt.title('Electric Vehicle Adoption Forecast in Washington')
+plt.xlabel('Date')
+plt.ylabel('Total Electric Vehicles')
+plt.legend()
+plt.show()
+
+
+# %%
+
