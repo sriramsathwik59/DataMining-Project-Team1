@@ -102,10 +102,10 @@ east_df = df_copy[df_copy['Region'] == 'East']
 #%%
 
 
-ev_final=df_copy
-ev_final.head()
+df=df_copy
+df.head()
 
-ev_final.to_csv("evdataset.csv", index=False)
+len(df)
 
 # %%
 
@@ -116,12 +116,7 @@ result_df = df_copy.groupby('Region').agg({
     'Non-Electric Vehicle Total': 'sum'
 }).reset_index()
 
-df['Region'] = result_df['Region'].reset_index(drop=True)
-
-print(df)
-#%%
-
-df.to_csv("evdataset.csv", index=False)
+result_df
 
 # %%
 
@@ -145,3 +140,32 @@ result_df1 = normalized_df.groupby('Region').agg({
 
 print(result_df1)
 # %%
+import matplotlib.pyplot as plt
+
+# Group by date and sum the electric and non-electric vehicles
+time_series_data = df.groupby('Date').agg({
+    'Battery Electric Vehicles (BEVs)': 'sum',
+    'Non-Electric Vehicle Total': 'sum'
+}).reset_index()
+
+# Plot the time series
+plt.figure(figsize=(12, 6))
+plt.plot(time_series_data['Date'], time_series_data['Battery Electric Vehicles (BEVs)'], label='Electric Vehicles')
+plt.plot(time_series_data['Date'], time_series_data['Non-Electric Vehicle Total'], label='Non-Electric Vehicles')
+plt.xlabel('Date')
+plt.ylabel('Number of Vehicles')
+plt.title('Time Series Analysis of Electric Vehicle Adoption')
+plt.legend()
+plt.show()
+
+# %%
+import seaborn as sns
+correlation_matrix = df[numerical_cols].corr()
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5)
+plt.title('Correlation Heatmap')
+plt.show()
+
+# %%
+
+
