@@ -86,8 +86,6 @@ print(f"P-value: {p_value}")
 
 
 # %%
-
-
 # 2. Exclude non-numeric columns
 numeric_columns = df.select_dtypes(include=['number'])
 
@@ -97,14 +95,14 @@ plt.figure(figsize=(12, 8))
 sns.boxplot(x='Electric Vehicle Type', y='Electric Range', data=df)
 plt.title("Boxplot of Electric Range by Electric Vehicle Type")
 plt.show()
-
+#%%
 # 5. Countplot
 # Visualize the count of each electric vehicle type
 plt.figure(figsize=(8, 6))
 sns.countplot(x='Electric Vehicle Type', data=df)
 plt.title("Count of Electric Vehicle Types")
 plt.show()
-
+#%%
 # 6. Bar chart
 # Visualize the average electric range for each vehicle make
 average_range_by_make = df.groupby('Make')['Electric Range'].mean().sort_values(ascending=False)
@@ -114,7 +112,7 @@ plt.title("Average Electric Range by Vehicle Make")
 plt.xlabel("Vehicle Make")
 plt.ylabel("Average Electric Range")
 plt.show()
-
+#%%
 # 7. Violin plot
 # Visualize the distribution of electric range for each vehicle type
 plt.figure(figsize=(12, 8))
