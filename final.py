@@ -102,10 +102,10 @@ east_df = df_copy[df_copy['Region'] == 'East']
 #%%
 
 
-ev_final=df_copy
-ev_final.head()
+df=df_copy
+df.head()
 
-len(ev_final)
+len(df)
 
 # %%
 
@@ -115,9 +115,8 @@ result_df = df_copy.groupby('Region').agg({
     'Electric Vehicle (EV) Total': 'sum',
     'Non-Electric Vehicle Total': 'sum'
 }).reset_index()
-df['Region'] = result_df['Region'].reset_index(drop=True)
 
-print(df)
+result_df
 
 # %%
 
@@ -173,14 +172,4 @@ plt.show()
 
 # %%
 
-from scipy.stats import ttest_ind
-
-# Perform t-test to compare means of electric and non-electric vehicles in different regions
-regions = df['Region'].unique()
-for region in regions:
-    region_data = df[df['Region'] == region]
-    t_stat, p_value = ttest_ind(region_data['Battery Electric Vehicles (BEVs)'], region_data['Non-Electric Vehicle Total'])
-    print(f'T-test for {region}: t-statistic = {t_stat}, p-value = {p_value}')
-
-# %%
 
