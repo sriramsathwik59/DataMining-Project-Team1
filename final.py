@@ -115,8 +115,9 @@ result_df = df_copy.groupby('Region').agg({
     'Electric Vehicle (EV) Total': 'sum',
     'Non-Electric Vehicle Total': 'sum'
 }).reset_index()
+df['Region'] = result_df['Region'].reset_index(drop=True)
 
-print(result_df)
+print(df)
 
 # %%
 
@@ -140,3 +141,46 @@ result_df1 = normalized_df.groupby('Region').agg({
 
 print(result_df1)
 # %%
+import matplotlib.pyplot as plt
+
+# Group by date and sum the electric and non-electric vehicles
+time_series_data = df.groupby('Date').agg({
+    'Battery Electric Vehicles (BEVs)': 'sum',
+    'Non-Electric Vehicle Total': 'sum'
+}).reset_index()
+
+# Plot the time series
+plt.figure(figsize=(12, 6))
+plt.plot(time_series_data['Date'], time_series_data['Battery Electric Vehicles (BEVs)'], label='Electric Vehicles')
+plt.plot(time_series_data['Date'], time_series_data['Non-Electric Vehicle Total'], label='Non-Electric Vehicles')
+plt.xlabel('Date')
+plt.ylabel('Number of Vehicles')
+plt.title('Time Series Analysis of Electric Vehicle Adoption')
+plt.legend()
+plt.show()
+
+# %%
+import seaborn as sns
+
+# Calculate correlations between numerical columns
+correlation_matrix = df[numerical_cols].corr()
+
+# Plot the heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5)
+plt.title('Correlation Heatmap')
+plt.show()
+
+# %%
+
+from scipy.stats import ttest_ind
+
+# Perform t-test to compare means of electric and non-electric vehicles in different regions
+regions = df['Region'].unique()
+for region in regions:
+    region_data = df[df['Region'] == region]
+    t_stat, p_value = ttest_ind(region_data['Battery Electric Vehicles (BEVs)'], region_data['Non-Electric Vehicle Total'])
+    print(f'T-test for {region}: t-statistic = {t_stat}, p-value = {p_value}')
+
+# %%
+
