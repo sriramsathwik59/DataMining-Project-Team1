@@ -106,3 +106,37 @@ ev_final=df_copy
 ev_final.head()
 
 len(ev_final)
+
+# %%
+
+df_copy['Region'] = df_copy['State'].apply(categorize_state)
+
+result_df = df_copy.groupby('Region').agg({
+    'Electric Vehicle (EV) Total': 'sum',
+    'Non-Electric Vehicle Total': 'sum'
+}).reset_index()
+
+print(result_df)
+
+# %%
+
+from sklearn.preprocessing import MinMaxScaler
+
+south_west_df = df_copy[df_copy['Region'].isin(['South', 'West'])]
+
+scaler = MinMaxScaler()
+normalized_data = scaler.fit_transform(south_west_df[numerical_cols])
+normalized_df = pd.DataFrame(normalized_data, columns=numerical_cols)
+normalized_df['Region'] = south_west_df['Region'].reset_index(drop=True)
+
+print(normalized_df)
+
+# %%
+
+result_df1 = normalized_df.groupby('Region').agg({
+    'Electric Vehicle (EV) Total': 'sum',
+    'Non-Electric Vehicle Total': 'sum'
+}).reset_index()
+
+print(result_df1)
+# %%
