@@ -38,7 +38,7 @@ df
 #%%
 # Convert 'Date' column to datetime format
 df['Date'] = pd.to_datetime(df['Date'])
-
+df.head()
 #%%
 from scipy.stats import zscore
 
@@ -56,6 +56,65 @@ else:
     print("There are no rows with outliers.")
 
 df[outliers]
+
+#%%
+
+# Count the unique states
+unique_states_count = df['State'].nunique()
+
+# Get the list of unique states
+unique_states_list = df['State'].unique()
+
+# Print the count and the list of unique states
+print("Number of unique states in the dataset:", unique_states_count)
+print("List of unique states:", unique_states_list)
+
+
+#%%
+
+# Example state abbreviation-to-region mapping for the U.S.
+regions = {
+    'South': ['AL', 'AR', 'FL', 'GA', 'KY', 'LA', 'MS', 'MO', 'NC', 'SC', 'TN', 'TX', 'VA', 'WV'],
+    'West': ['AK', 'AZ', 'CA', 'CO', 'HI', 'ID', 'MT', 'NV', 'NM', 'OR', 'UT', 'WA', 'WY'],
+    'North': ['CT', 'IL', 'IN', 'IA', 'KS', 'ME', 'MA', 'MI', 'MN', 'NE', 'NH', 'NJ', 'NY', 'ND', 'OH', 'PA', 'RI', 'SD', 'VT', 'WI'],
+    'East': ['DE', 'MD', 'DC']
+}
+
+# Function to categorize each state
+def categorize_state(state_abbr):
+    for region, state_abbrs in regions.items():
+        if state_abbr in state_abbrs:
+            return region
+    return 'Other'  # For states not in the mapping
+
+# Create a copy of the DataFrame to avoid the SettingWithCopyWarning
+df_copy = df.copy()
+
+# Apply the function to the copy of your DataFrame
+df_copy['Region'] = df_copy['State'].apply(categorize_state)
+
+# Creating subsets using the copied DataFrame
+south_df = df_copy[df_copy['Region'] == 'South']
+west_df = df_copy[df_copy['Region'] == 'West']
+north_df = df_copy[df_copy['Region'] == 'North']
+east_df = df_copy[df_copy['Region'] == 'East']
+
+# You can now work with south_df, west_df, north_df, and east_df as needed
+
+#%%
+
+
+ev_final=df_copy
+ev_final.head()
+
+len(ev_final)
+
+
+#%%
+# Assuming your DataFrame is named df
+df.to_csv('ev_final.csv', index=False)
+
+
 
 #%%
 import seaborn as sns
@@ -76,7 +135,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Aggregate data by Date
-ev_trend = df.groupby('Date')['Electric Vehicle (EV) Total'].sum()
+ev_trend = ev_final.groupby('Date')['Electric Vehicle (EV) Total'].sum()
 
 # Plotting the trend
 plt.figure(figsize=(12, 6))
@@ -93,6 +152,8 @@ This indicates a growing interest and investment in electric vehicles over the t
 The most recent data points suggest that the growth in EV adoption has not plateaued
 ,indicating a continuing trend towards electric vehicle usage.
 '''
+#%%
+
 
 # %%
 import seaborn as sns
