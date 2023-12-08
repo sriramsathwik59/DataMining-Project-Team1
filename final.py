@@ -160,11 +160,7 @@ plt.show()
 
 # %%
 import seaborn as sns
-
-# Calculate correlations between numerical columns
 correlation_matrix = df[numerical_cols].corr()
-
-# Plot the heatmap
 plt.figure(figsize=(10, 8))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5)
 plt.title('Correlation Heatmap')
