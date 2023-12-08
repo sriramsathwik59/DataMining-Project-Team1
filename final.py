@@ -105,7 +105,7 @@ east_df = df_copy[df_copy['Region'] == 'East']
 ev_final=df_copy
 ev_final.head()
 
-len(ev_final)
+ev_final.to_csv("evdataset.csv", index=False)
 
 # %%
 
@@ -116,7 +116,12 @@ result_df = df_copy.groupby('Region').agg({
     'Non-Electric Vehicle Total': 'sum'
 }).reset_index()
 
-print(result_df)
+df['Region'] = result_df['Region'].reset_index(drop=True)
+
+print(df)
+#%%
+
+df.to_csv("evdataset.csv", index=False)
 
 # %%
 
