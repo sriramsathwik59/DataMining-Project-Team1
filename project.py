@@ -376,3 +376,143 @@ plt.show()
 
 # %%
 
+# %%
+#Research Question 3: "How does the adoption of electric vehicles differ based on the primary use of the vehicle (e.g., passenger cars, trucks)?"
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Assuming df is your DataFrame with the electric vehicle data
+# Convert the 'Date' column to datetime format
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Aggregate data by Vehicle Primary Use
+ev_by_vehicle_type = df.groupby('Vehicle Primary Use')['Electric Vehicle (EV) Total'].sum().sort_values(ascending=False)
+
+# Plotting the distribution
+plt.figure(figsize=(12, 6))
+sns.barplot(x=ev_by_vehicle_type.index, y=ev_by_vehicle_type.values, palette="viridis")
+plt.title('Distribution of Electric Vehicles by Vehicle Primary Use')
+plt.xlabel('Vehicle Primary Use')
+plt.ylabel('Total Electric Vehicles')
+plt.xticks(rotation=45)
+plt.show()
+
+
+
+# %%
+from scipy.stats import f_oneway
+
+# Perform ANOVA test
+anova_result = f_oneway(df[df['Vehicle Primary Use'] == 'Passenger']['Electric Vehicle (EV) Total'],
+                        df[df['Vehicle Primary Use'] == 'Truck']['Electric Vehicle (EV) Total'])
+
+# Print the ANOVA result
+print("ANOVA Result:")
+print(anova_result)
+
+# Interpret the result
+if anova_result.pvalue < 0.05:
+    print("Reject the null hypothesis: There is a significant difference in means.")
+else:
+    print("Fail to reject the null hypothesis: No significant difference in means.")
+
+# %%
+#Model Building
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
+
+# Assuming df is your DataFrame with the electric vehicle data
+# Convert the 'Date' column to datetime format
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Drop rows with missing values for simplicity
+df = df.dropna()
+
+# Encode categorical variables (Vehicle Primary Use)
+label_encoder = LabelEncoder()
+df['Vehicle Primary Use'] = label_encoder.fit_transform(df['Vehicle Primary Use'])
+
+# Select relevant features and target variable
+X = df[['Battery Electric Vehicles (BEVs)', 'Plug-In Hybrid Electric Vehicles (PHEVs)', 'Non-Electric Vehicle Total']]
+y = df['Vehicle Primary Use']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Instantiate the decision tree classifier
+model = DecisionTreeClassifier(random_state=42)
+
+# Fit the model to the training data
+model.fit(X_train, y_train)
+
+# Make predictions on the test data
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+
+# Print the evaluation metrics
+print(f"Accuracy: {accuracy:.2f}")
+print("\nConfusion Matrix:")
+print(conf_matrix)
+print("\nClassification Report:")
+print(classification_rep)
+
+
+# %%
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
+
+# Assuming df is your DataFrame with the electric vehicle data
+# Convert the 'Date' column to datetime format
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Drop rows with missing values for simplicity
+df = df.dropna()
+
+# Encode categorical variables (Vehicle Primary Use)
+label_encoder = LabelEncoder()
+df['Vehicle Primary Use'] = label_encoder.fit_transform(df['Vehicle Primary Use'])
+
+# Select relevant features and target variable
+X = df[['Battery Electric Vehicles (BEVs)', 'Plug-In Hybrid Electric Vehicles (PHEVs)', 'Non-Electric Vehicle Total']]
+y = df['Vehicle Primary Use']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Calculate class weights to handle imbalanced data
+class_weights = dict(zip(y.unique(), len(y) / (len(y.unique()) * y.value_counts())))
+
+# Instantiate the decision tree classifier with class weights
+model = DecisionTreeClassifier(random_state=42, class_weight=class_weights)
+
+# Fit the model to the training data
+model.fit(X_train, y_train)
+
+# Make predictions on the test data
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+
+# Print the evaluation metrics
+print(f"Accuracy: {accuracy:.2f}")
+print("\nConfusion Matrix:")
+print(conf_matrix)
+print("\nClassification Report:")
+print(classification_rep)
+
+# 
