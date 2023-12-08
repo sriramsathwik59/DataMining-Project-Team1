@@ -75,9 +75,6 @@ plt.show()
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Ensure the date column is in datetime format
-df['Date'] = pd.to_datetime(df['Date'])
-
 # Aggregate data by Date
 ev_trend = df.groupby('Date')['Electric Vehicle (EV) Total'].sum()
 
