@@ -31,7 +31,6 @@ plt.xlabel('Make and Model')
 plt.ylabel('Count')
 plt.show()
 
-
 # %%
 top_5_make_counts = data['make'].value_counts().nlargest(5)
 
