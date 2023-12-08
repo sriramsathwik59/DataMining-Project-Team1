@@ -15,6 +15,7 @@ print(data.isnull().sum())
 data = data.dropna()
 data = data.drop_duplicates()
 data
+print(data)
 # %%
 import pandas as pd
 import seaborn as sns
@@ -32,10 +33,10 @@ plt.ylabel('Count')
 plt.show()
 
 # %%
-top_5_make_counts = data['make'].value_counts().nlargest(5)
+make_counts = data['make'].value_counts().nlargest(5)
 
 plt.figure(figsize=(12, 6))
-sns.barplot(x=top_5_make_counts.values, y=top_5_make_counts.index, palette="viridis")
+sns.barplot(x=make_counts.values, y=make_counts.index, palette="viridis")
 plt.title('Top 5 Makes of Electric Vehicles')
 plt.xlabel('Count')
 plt.ylabel('Make')
