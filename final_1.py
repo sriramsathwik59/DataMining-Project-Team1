@@ -122,3 +122,18 @@ plt.show()
 
 # %%
 # %%
+unique_caf = df['Clean Alternative Fuel Vehicle (CAFV) Eligibility'].unique()
+print(unique_caf)
+
+# %%
+# Replace values in the specified column
+df['Clean Alternative Fuel Vehicle (CAFV) Eligibility'] = df['Clean Alternative Fuel Vehicle (CAFV) Eligibility'].replace({
+    'Clean Alternative Fuel Vehicle Eligible': 'Eligible',
+    'Eligibility unknown as battery range has not been researched': 'Unknown',
+    'Not eligible due to low battery range': 'Not Eligible'
+})
+
+# Print the updated unique values in the column
+print(df['Clean Alternative Fuel Vehicle (CAFV) Eligibility'].unique())
+
+#%%
