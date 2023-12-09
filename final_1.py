@@ -348,3 +348,39 @@ plt.title('Confusion Matrix - Random Forest Classification Model')
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
+
+#%%import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
+
+# Load the dataset
+data = pd.read_csv('updated.csv')  # Update with your file path
+
+# Encode categorical variables
+le = LabelEncoder()
+for col in ['make', 'model', 'county', 'city', 'state', 'electric vehicle type', 'electric utility']:
+    data[col] = le.fit_transform(data[col])
+
+# Convert target variable to binary (if it's not already)
+data['cafv_eligibility'] = data['clean alternative fuel vehicle (cafv) eligibility'].apply(lambda x: 1 if x == 'Eligible' else 0)
+
+# Define predictor variables and target variable
+X = data[['make', 'model', 'model year', 'electric vehicle type', 'electric range', 'county', 'city', 'state', 'electric utility']]
+y = data['cafv_eligibility']
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Create and train the logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Make predictions and evaluate the model
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+
+# If necessary, adjust the mode
