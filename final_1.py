@@ -298,3 +298,53 @@ print("Classification Report:\n", classification_report(y_test, y_pred))
 coefficients = pd.DataFrame(model.coef_[0], X.columns, columns=['Coefficient'])
 print(coefficients)
 # %%
+# %%
+# Random Forest with feautures as 'Model Year', 'Electric Vehicle Type and Target as 'Electric Range'
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+threshold = 100  # Choosing an appropriate threshold
+
+# Converting 'Electric Range' to a binary target variable
+df['Target'] = (df['Electric Range'] > threshold).astype(int)
+
+# Select features and target variable
+features = df[['Model Year', 'Electric Vehicle Type']]
+target = df['Target']
+
+features = pd.get_dummies(features, columns=['Electric Vehicle Type'], drop_first=True)
+
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+
+rf_classifier.fit(X_train, y_train)
+
+rf_predictions = rf_classifier.predict(X_test)
+
+accuracy = accuracy_score(y_test, rf_predictions)
+cm = confusion_matrix(y_test, rf_predictions)
+classification_report_str = classification_report(y_test, rf_predictions)
+
+print("Random Forest Classification Model:")
+print(f"Accuracy: {accuracy}")
+print("\nConfusion Matrix:\n", cm)
+print("\nClassification Report:\n", classification_report_str)
+
+
+# %%
+#Random Forest Confusion matrix
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+cm = confusion_matrix(y_test, rf_predictions)
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', annot_kws={"size": 16})
+plt.title('Confusion Matrix - Random Forest Classification Model')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
