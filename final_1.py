@@ -383,4 +383,62 @@ accuracy = accuracy_score(y_test, y_pred)
 
 print("Accuracy:", accuracy)
 
-# If necessary, adjust the mode
+#%%
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import matplotlib.pyplot as plt
+from sklearn.tree import plot_tree
+import seaborn as sns
+
+# Load the dataset
+file_path = 'updated.csv'  # Update this with your file path
+data = pd.read_csv(file_path)
+
+# Encoding categorical variables
+le = LabelEncoder()
+data['make_encoded'] = le.fit_transform(data['make'])
+data['model_encoded'] = le.fit_transform(data['model'])
+data['electric_vehicle_type_encoded'] = le.fit_transform(data['electric vehicle type'])
+data['electric_utility_encoded'] = le.fit_transform(data['electric utility'])
+data['cafv_eligibility_encoded'] = le.fit_transform(data['clean alternative fuel vehicle (cafv) eligibility'])
+
+# Selecting a subset of features
+X = data[['make_encoded', 'model_encoded', 'electric_vehicle_type_encoded', 'electric_utility_encoded']]
+
+# Target variable
+y = data['cafv_eligibility_encoded']
+
+# Splitting the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Creating and training the decision tree classifier with limited depth
+clf = DecisionTreeClassifier(max_depth=5, random_state=42)
+clf.fit(X_train, y_train)
+
+# Predicting the test set results
+y_pred = clf.predict(X_test)
+
+# Evaluating the model
+accuracy = accuracy_score(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Plotting the tree
+plt.figure(figsize=(20,10))
+plot_tree(clf, filled=True, feature_names=X.columns, class_names=le.classes_)
+plt.title("Decision Tree for CAFV Eligibility Prediction")
+plt.show()
+
+# Plotting the confusion matrix
+plt.figure(figsize=(10, 7))
+sns.heatmap(conf_matrix, annot=True, fmt='g', cmap='Blues', xticklabels=le.classes_, yticklabels=le.classes_)
+plt.xlabel('Predicted Labels')
+plt.ylabel('True Labels')
+plt.title('Confusion Matrix')
+plt.show()
+
+print("Accuracy:", accuracy)
+print("Classification Report:\n", classification_rep)
