@@ -1,15 +1,12 @@
 #%%
 import pandas as pd
 df=pd.read_csv("Electric_Vehicle_Population_Data.csv")
-df = df.drop_duplicates()
-
-df = df.dropna()
+df = df.iloc[:, 1:]
 
 
 # %%
 print(df.isnull().sum())
 df = df.dropna()
-df = df.drop_duplicates()
 df
 # %%
 import pandas as pd
@@ -264,5 +261,40 @@ df['Clean Alternative Fuel Vehicle (CAFV) Eligibility'] = df['Clean Alternative 
 # Print the updated unique values in the column
 print(df['Clean Alternative Fuel Vehicle (CAFV) Eligibility'].unique())
 
-#%%
 
+# %%
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+le = LabelEncoder()
+for col in df.select_dtypes(include=['object']).columns:
+    df[col] = le.fit_transform(df[col])
+
+X = df.drop('Electric Vehicle Type', axis=1)  
+y = df['Electric Vehicle Type']  
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+model = LogisticRegression(max_iter=1000)  # Increase max_iter if convergence issues occur
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+print("Confusion Matrix:\n", cm)
+
+plt.figure(figsize=(10, 7))
+sns.heatmap(cm, annot=True, fmt='g', cmap='Blues')
+plt.xlabel('Predicted Labels')
+plt.ylabel('True Labels')
+plt.title('Confusion Matrix')
+plt.show()
+
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+coefficients = pd.DataFrame(model.coef_[0], X.columns, columns=['Coefficient'])
+print(coefficients)
+# %%
