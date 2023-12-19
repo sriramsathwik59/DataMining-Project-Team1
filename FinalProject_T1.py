@@ -355,8 +355,6 @@ model = sm.OLS(y, X).fit()
 
 # Getting the summary of the regression
 model_summary = model.summary()
-
-# Print the summary
 print(model_summary)
 
 '''
@@ -400,7 +398,6 @@ model.fit(X_train_scaled, y_train)
 # Make predictions on the test set
 y_pred = model.predict(X_test_scaled)
 
-# Evaluate the model (you can print accuracy, precision, recall, etc., as needed)
 from sklearn.metrics import accuracy_score, classification_report
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Classification Report:")
