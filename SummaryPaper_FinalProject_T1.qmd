@@ -373,5 +373,327 @@ plt.show()
 Arizona leads the way in average EVs per state, indicating high adoption rates, which could be attributed to favourable incentives or infrastructure. The descending order contrasts sharply with states at the opposite end of the spectrum, where adoption is clearly lower.
 
 
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+bevs_by_region = df.groupby('Region')['Battery Electric Vehicles (BEVs)'].sum()
+phevs_by_region = df.groupby('Region')['Plug-In Hybrid Electric Vehicles (PHEVs)'].sum()
+
+# Stacking BEVs and PHEVs
+plt.figure(figsize=(10, 6))
+plt.bar(bevs_by_region.index, bevs_by_region, label='BEVs', color='blue', alpha=0.7)
+plt.bar(phevs_by_region.index, phevs_by_region, bottom=bevs_by_region, label='PHEVs', color='orange', alpha=0.7)
+plt.title('Comparison of BEVs and PHEVs by Region')
+plt.xlabel('Region')
+plt.ylabel('Number of Vehicles')
+plt.legend()
+plt.show()
+
+```
+**Observation:** 
+The West leads not only in total EV numbers, but also in the preference for BEVs over PHEVs. The chart highlights regional differences in vehicle type preferences, with the West favouring all-electric vehicles.
+
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+import numpy as np
+# Assuming df1 is already loaded and preprocessed as before
+county_region_grouped = df.groupby(['Region', 'County']).agg({
+    'Battery Electric Vehicles (BEVs)': 'sum', 
+    'Plug-In Hybrid Electric Vehicles (PHEVs)': 'sum'
+}).reset_index()
+
+# Adding a total EVs column for sorting
+county_region_grouped['Total EVs'] = county_region_grouped['Battery Electric Vehicles (BEVs)'] + county_region_grouped['Plug-In Hybrid Electric Vehicles (PHEVs)']
+
+# Sorting to get the top 20 counties overall based on total EVs
+top_20_counties_overall = county_region_grouped.sort_values(by='Total EVs', ascending=False).head(20)
+
+# Extracting the unique regions from the top 20 counties
+regions = top_20_counties_overall['Region'].unique()
+
+# Assigning different colors for each region using NumPy
+colors = plt.cm.viridis(np.linspace(0, 1, len(regions)))
+region_colors = {region: color for region, color in zip(regions, colors)}
+
+# Creating the bar plot for the top 20 counties, colored by their region
+plt.figure(figsize=(15, 8))
+for _, row in top_20_counties_overall.iterrows():
+    plt.bar(row['County'], row['Battery Electric Vehicles (BEVs)'], color=region_colors[row['Region']], edgecolor='white')
+    plt.bar(row['County'], row['Plug-In Hybrid Electric Vehicles (PHEVs)'], bottom=row['Battery Electric Vehicles (BEVs)'], color=region_colors[row['Region']], alpha=0.5, edgecolor='white')
+
+# Creating a custom legend
+legend_patches = [mpatches.Patch(color=color, label=region) for region, color in region_colors.items()]
+plt.legend(handles=legend_patches, title='Region')
+
+plt.title('Top 20 Counties in EV Adoption (BEVs and PHEVs) by Region')
+plt.xlabel('County')
+plt.ylabel('Number of Vehicles')
+plt.xticks(rotation=45)
+plt.show()
+
+```
+**Observation:** 
+In terms of total EV adoption, San Diego and Los Angeles counties have a significant lead. The graphic depicts regional EV hotspots, with the West, particularly California, dominating the chart, reflecting regional policy success and consumer preference for electric mobility.
+
+# HYPOTHESIS TESTING
+## TEST 1
+### ANOVA test
+#### Is there a significant difference in the average number of EVs among different years (comparing 2017, 2019, and 2021)?
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+
+#Null Hypothesis (H0): There is no significant difference in the average number of EVs among the years 2017, 2019, and 2021. 
+#This implies that any observed differences are due to random chance.
+#Alternative Hypothesis (H1): There is a significant difference in the average number of EVs among these years, indicating that changes over the years are not just random variations.
+
+from scipy.stats import f_oneway
+import pandas as pd
+
+df_years = df[df['Year'].isin([2017, 2019, 2021])]
+
+# Extract the EV totals for each of these years
+data_2017 = df_years[df_years['Year'] == 2017]['Electric Vehicle (EV) Total']
+data_2019 = df_years[df_years['Year'] == 2019]['Electric Vehicle (EV) Total']
+data_2021 = df_years[df_years['Year'] == 2021]['Electric Vehicle (EV) Total']
+
+# Perform ANOVA test
+anova_result = f_oneway(data_2017, data_2019, data_2021)
+
+# Output the result
+print(anova_result)
+```
+**Observation:** 
+The ANOVA test reveals a highly significant difference in the average number of EVs between 2017, 2019, and 2021 (p-value 0.00001). The statistic shows a statistically significant change in EV numbers over these years, implying that the factors influencing EV adoption have evolved, resulting in fluctuations in annual EV adoption rates. This finding calls for more research into the specific annual factors influencing these variations, such as policy changes, technological advancements, or economic incentives.
+
+
+## TEST 2
+### CHI-SQUARE test
+#### SMART QUESTION 2: Is there a statistically significant association between geographic regions and the primary use categories of electric vehicles?
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+#Null Hypothesis (H0): There is no association between the region and the vehicle primary use category in terms of EV adoption.
+#This means any observed association is due to random chance.
+#Alternative Hypothesis (H1): There is an association between the region and the vehicle primary use  category in terms of EV adoption. 
+#This means the observed association is not due to random chance.
+
+contingency_table = pd.crosstab(df['Region'], df['Vehicle Primary Use'])
+
+chi2, p_value, dof, expected = chi2_contingency(contingency_table)
+
+# Output the results
+print("Chi-square statistic:", chi2)
+print("p-value:", p_value)
+print("\nContingency Table:")
+print(contingency_table)
+
+```
+
+**Conclusion for SMART Q2:** 
+
+The chi-square test reveals a significant relationship between geographic regions and electric vehicle primary use categories (p-value 0.001). The contingency table reveals regional disparities, with the South leading in passenger EVs and the West balancing passenger and truck categories. This suggests regional differences in EV usage patterns, which could be influenced by regional lifestyles, infrastructure, or economic factors.
+
+
+## TEST 3
+### T-Test
+#### SMART QUESTION3: Is there a significant difference in the average number of electric vehicles (EVs) between the top 5 counties of the South region and the top 5 counties of the Northeast region in the United States?
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+from scipy.stats import ttest_ind
+#H0 The mean number of EVs in the top 5 counties of the South region is equal to or greater than the mean number of EVs in the top 5 counties of the Northeast region. 
+#H1: The mean number of EVs in the top 5 counties of the South region is less than the mean number of EVs in the top 5 counties of the Northeast region.
+
+data_2023_northeast = df[(df['Year'] == 2023) & (df['Region'] == 'Northeast')]
+county_ev_totals_northeast = data_2023_northeast.groupby('County')['Electric Vehicle (EV) Total'].sum()
+top5_counties_northeast = county_ev_totals_northeast.sort_values(ascending=False).head(5)
+data_2023_south = df[(df['Year'] == 2023) & (df['Region'] == 'South')]
+county_ev_totals = data_2023_south.groupby('County')['Electric Vehicle (EV) Total'].sum()
+
+top5_counties = county_ev_totals.sort_values(ascending=False).head(5)
+
+
+mean_south = top5_counties.mean()
+mean_northeast = top5_counties_northeast.mean()
+
+# Perform a t-test
+# Since we are doing a one-tailed test, we need to divide the p-value by 2
+t_stat, p_value = ttest_ind(top5_counties, top5_counties_northeast, equal_var=False)
+p_value_one_tailed = p_value / 2
+
+mean_south, mean_northeast, t_stat, p_value_one_tailed 
+
+print("t-stat:",t_stat)
+print("p_value",p_value_one_tailed)
+
+```
+
+**Conclusion for SMART Q3:** 
+
+The p-value is much higher than the commonly used significance level of 0.05 so we failed to reject null hypothesis so we  conclude that the mean number of EVs in the top 5 counties of the South region is less than that in the top 5 counties of the Northeast region. We have seen that the trend of EV adoption in each region in that we have seen Northeast have higher adoption than  south from 2022 to 2023 we are using the above test to check northeast adoption or increase of ev not due to top5 counties but rather average of all counties from the t-test the top5 south region having highest EV adoption but overall it decreased
+
+
+
+# MODELLING
+##  OLS Regression
+### SMART QUESTION 4: Is there a relationship between the year and total vehicle count in predicting regional EV adoption?
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+import statsmodels.api as sm
+
+# Preparing the data for linear regression
+# 'Year' and 'Total Vehicles' will be our independent variables (predictors)
+# 'Electric Vehicle (EV) Total' is the dependent variable (target)
+
+X = df[['Year', 'Total Vehicles']]  # Independent variables
+y = df['Electric Vehicle (EV) Total']  # Dependent variable
+
+# Adding a constant to the model (intercept)
+X = sm.add_constant(X)
+
+# Building the linear regression model
+model = sm.OLS(y, X).fit()
+
+# Getting the summary of the regression
+model_summary = model.summary()
+
+# Print the summary
+print(model_summary)
+
+```
+**Conclusion for SMART Q4:** 
+
+With an R-squared of 0.591, the OLS regression model demonstrates a significant relationship between the year, total vehicle count, and regional EV adoption. This means that the model accounts for approximately 59% of the variation in EV adoption. The year and total vehicle count are significant predictors (p 0.0001), indicating that temporal changes and vehicle availability play a role. The high condition number, on the other hand, indicates the possibility of multicollinearity, which may affect the reliability of the regression coefficients. The model emphasises the significance of time trends and vehicle accessibility in influencing regional EV adoption.
+
+## LogisticRegression
+### SMART Q5:  Can demographic and regional factors, such as year, state, and region, effectively predict the likelihood of a county having high electric vehicle adoption rates?
+
+**Task:** 
+
+Predict whether a county has a high or low adoption of electric vehicles based on the provided features.
+
+**Target Variable:** 
+
+Create a binary target variable (e.g., "High EV Adoption" vs. "Low EV Adoption") based on a threshold of Percent Electric Vehicles.
+Logistic Regression: Use logistic regression to model the likelihood of high EV adoption based on the other features.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+
+import warnings
+warnings.filterwarnings("ignore")
+
+
+
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Define the threshold for high vs. low EV adoption (you can adjust this threshold)
+threshold = 5.0  # For example, counties with >5% adoption are considered "high" adoption
+
+# Create a binary target variable based on the threshold
+df['HighEVAdoption'] = (df['Percent Electric Vehicles'] > threshold).astype(int)
+
+# Define the predictors (features)
+X = df[['Year', 'Electric Vehicle (EV) Total', 'State', 'Region']]
+
+# Define the target variable
+y = df['HighEVAdoption']
+
+# Perform one-hot encoding for the categorical columns
+X = pd.get_dummies(X, columns=['State', 'Region'], drop_first=True)
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Create and train the logistic regression model
+model = LogisticRegression(random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate the model (you can print accuracy, precision, recall, etc., as needed)
+from sklearn.metrics import accuracy_score, classification_report
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+
+```
+
+**Conclusion for SMART Q5:** 
+
+With an accuracy of 81.76%, the logistic regression model suggests that demographic and regional factors can be moderately effective in predicting high electric vehicle adoption rates at the county level. Precision in predicting high adoption counties is significantly lower than in predicting low adoption counties, indicating some difficulties in identifying counties with high EV adoption solely based on these factors. The model predicts low adoption rates with high precision and recall, which may reflect a more consistent set of negative indicators across counties. Overall, while the model is useful, it could benefit from the addition of more variables to improve its predictive power for high adoption rates.
+
+# FUTURE SCOPE
+
+Certainly! Building on your suggestions for future scope involving the implementation of decision tree analysis and state-wise modeling, here's some additional ideas:
+
+In contemplating the future scope of our project with the Electric Vehicle (EV) population dataset, several promising directions present themselves. Firstly, we can enhance our classification analysis by employing decision tree models, which may offer increased accuracy and better interpretability. Decision trees can effectively handle complex datasets and provide clear insights into how different variables interact to influence EV adoption. Additionally, undertaking a state-wise analysis and modeling could yield more granular insights, revealing unique trends and adoption patterns that vary across states. This approach would allow for tailored strategies that address specific regional characteristics.
+
+Finally, exploring machine learning techniques like neural networks or ensemble methods could further refine our predictive models. These advanced techniques are adept at capturing non-linear relationships and interactions between variables, which could unveil more nuanced insights into EV adoption patterns.
+
+
+# CONCLUSION
+
+The analysis demonstrates a prominent trend in the adoption of Electric Vehicles (EVs), with the Western region emerging as the leader, closely trailed by the Northeast. This trend is largely influenced by the unique characteristics of these areas. Both regions are recognized for their robust environmental advocacy and forward-thinking energy policies that promote the use of clean and sustainable energy sources, including EVs. These policies typically encompass various incentives such as tax deductions, financial grants, and support for EV infrastructure development.
+
+Additionally, the Western and Northeastern regions are characterized by a denser presence of urban centers. In such settings, the uptake of novel technologies, including EVs, is generally quicker. This can be attributed to factors like higher average income, a stronger sense of environmental responsibility, and the availability of superior EV charging facilities.
+
+Furthermore, these regions often face higher fuel prices compared to other parts of the country, making the option of EVs more financially appealing. The presence of significant technological centers like Silicon Valley in the Western region, along with renowned educational and research institutions in the Northeast, creates an environment more conducive to adopting new technologies such as EVs. Collectively, these elements play a crucial role in the heightened rates of EV adoption seen in the Western and Northeastern United States, mirroring a synergy of policy, economic, and cultural factors.
+
+The logistic regression analysis provided insights into predicting whether a county has a high or low rate of EV adoption. The model demonstrated a reliable performance with an accuracy of 81% and a precision rate of 0.83, signifying its dependability in making these predictions.
+
+
+# REFERENCES
+
+1) Singh, V., Singh, V., & Vaibhav, S. (2020). A review and simple meta-analysis of factors influencing adoption of electric vehicles. Transportation Research Part D: Transport and Environment, 86, 102436.
+
+2) Debnath, R., Bardhan, R., Reiner, D. M., & Miller, J. R. (2021). Political, economic, social, technological, legal and environmental dimensions of electric vehicle adoption in the United States: A social-media interaction analysis. Renewable and Sustainable Energy Reviews, 152, 111707.
+
+3) Broadbent, G. H., Drozdzewski, D., & Metternicht, G. (2018). Electric vehicle adoption: An analysis of best practice and pitfalls for policy making from experiences of Europe and the US. Geography compass, 12(2), e12358.
 
 
